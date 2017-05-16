@@ -13,14 +13,14 @@ namespace NGraphics
 {
 	public class ApplePlatform : IPlatform
 	{
-		public string Name { 
-			get { 
+		public string Name {
+			get {
 				#if __IOS__
-				return "iOS"; 
+				return "iOS";
 				#else
 				return "Mac";
 				#endif
-			} 
+			}
 		}
 
 		public Task<Stream> OpenFileStreamForWritingAsync (string path)
@@ -51,7 +51,7 @@ namespace NGraphics
 			var bitmap = new CGBitmapContext (IntPtr.Zero, pixelWidth, pixelHeight, bitsPerComp, bytesPerRow, colorSpace, bitmapInfo);
 			var data = bitmap.Data;
 			unsafe {
-				fixed (Color *c = colors) {					
+				fixed (Color *c = colors) {
 					for (var y = 0; y < pixelHeight; y++) {
 						var s = (byte*)c + 4*pixelWidth*y;
 						var d = (byte*)data + bytesPerRow*y;
@@ -68,7 +68,7 @@ namespace NGraphics
 					}
 				}
 			}
-			var image = bitmap.ToImage (); 
+			var image = bitmap.ToImage ();
 			return new CGImageImage (image, scale);
 		}
 		public IImage LoadImage (Stream stream)
@@ -87,7 +87,7 @@ namespace NGraphics
 		{
 			var provider = new CGDataProvider (path);
 			CGImage image;
-			if (System.IO.Path.GetExtension (path).ToLowerInvariant () == ".png") {				
+			if (System.IO.Path.GetExtension (path).ToLowerInvariant () == ".png") {
 				image = CGImage.FromPNG (provider, null, false, CGColorRenderingIntent.Default);
 			} else {
 				image = CGImage.FromJPEG (provider, null, false, CGColorRenderingIntent.Default);
@@ -192,7 +192,7 @@ namespace NGraphics
 		{
 			if (stream == null)
 				throw new ArgumentNullException ();
-			
+
 			using (var data = new NSMutableData ()) {
 				using (var dest = CGImageDestination.Create (data, "public.png", 1)) {
 					if (dest == null) {
@@ -272,7 +272,7 @@ namespace NGraphics
 
 				atext.AddAttributes (new CTStringAttributes {
 					ForegroundColorFromContext = true,
-					StrokeColor = pen != null ? pen.Color.GetCGColor () : null, 
+					StrokeColor = pen != null ? pen.Color.GetCGColor () : null,
 					Font = font.GetCTFont (),
 				}, new NSRange (0, text.Length));
 
@@ -389,7 +389,7 @@ namespace NGraphics
 						if (pp == p)
 							continue;
 						Point c1, c2;
-						at.GetCircles (pp, out c1, out c2);
+						at.GetEllipseCenters (pp, out c1, out c2);
 
 						var circleCenter = (at.LargeArc ^ at.SweepClockwise) ? c1 : c2;
 

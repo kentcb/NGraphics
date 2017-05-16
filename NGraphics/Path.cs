@@ -142,32 +142,42 @@ namespace NGraphics
 
 		public override Point GetEndPoint (Point startPoint) { return Point; }
 
-		public void GetCircles (Point prevPoint, out Point circle1Center, out Point circle2Center)
-		{
-			//Following explanation at http://mathforum.org/library/drmath/view/53027.html'
-			if (Radius.Width == 0)
-				throw new Exception ("radius x of zero");
-			if (Radius.Height == 0)
-				throw new Exception ("radius y of zero");
-			var p1 = prevPoint;
-			var p2 = Point;
-			if (p1 == p2)
-				throw new Exception ("coincident points gives infinite number of Circles");
-			// delta x, delta y between points
-			var dp = p2 - p1;
-			// dist between points
-			var q = dp.Distance;
-			if (q > 2.0*Radius.Diagonal)
-				throw new Exception ("separation of points > diameter");
-			// halfway point
-			var p3 = (p1 + p2) / 2;
-			// distance along the mirror line
-			var xd = Math.Sqrt (Radius.Width*Radius.Width - (q/2)*(q/2));
-			var yd = Math.Sqrt (Radius.Height*Radius.Height - (q/2)*(q/2));
 
-			circle1Center = new Point (p3.X - yd * dp.Y / q, p3.Y + xd * dp.X / q);
-			circle2Center = new Point (p3.X + yd * dp.Y / q, p3.Y - xd * dp.X / q);
-		}
+        // TODO: feature parity? i.e. throw exceptions where necessary
+        public void GetEllipseCenters(Point prevPoint, out Point ellipse1Center, out Point ellipse2Center)
+        {
+            GetEllipseCenters(prevPoint, Point, Radius, out ellipse1Center, out ellipse2Center);
+        }
+
+        private void GetEllipseCenters(Point p1, Point p2, Size r, out Point center1, out Point center2)
+        {
+            // https://math.stackexchange.com/questions/11206/calculating-center-of-the-ellipse
+            var circlePoint1 = new Point(
+                p1.X / r.Width,
+                p1.Y / r.Height);
+            var circlePoint2 = new Point(
+                p2.X / r.Width,
+                p2.Y / r.Height);
+
+            // http://stackoverflow.com/a/20026117/5380
+            var mid = (p1 + p2) / 2;
+            var dx = (circlePoint1.X - circlePoint2.X) / 2;
+            var dy = (circlePoint1.Y - circlePoint2.Y) / 2;
+            var dist = Math.Sqrt(dx * dx + dy * dy);
+
+            // NOTE TO SELF: I think the Math.Max here is the problem. If negative, perhaps pDist should become negative?
+            // OR ACTUALLY: why isn't the Rect size increasing? Perhaps the centers are perfectly correct, but the rect should be expanding?
+            var pDist = Math.Sqrt(Math.Max(0, 1 - dist * dist));
+
+            var xDistRatio = pDist / dist * r.Width;
+            var yDistRatio = pDist / dist * r.Height;
+            center1 = new Point(
+                mid.X + dy * xDistRatio,
+                mid.Y - dx * yDistRatio);
+            center2 = new Point(
+                mid.X - dy * xDistRatio,
+                mid.Y + dx * yDistRatio);
+        }
 
 		public override EdgeSamples[] GetEdgeSamples (Point startPoint, Point prevPoint, double tolerance, int minSamples, int maxSamples)
 		{
